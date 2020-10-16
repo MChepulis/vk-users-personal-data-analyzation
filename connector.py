@@ -1,8 +1,9 @@
 import requests
 import vk_api
+import db_client
+import threading
 
-from keys import app_id, client_secret, safe_key,  token, api_version
-
+from keys import app_id, client_secret, safe_key, token, api_version
 
 default_photos = ['https://vk.com/images/camera_50.png', 'https://vk.com/images/camera_100.png',
                   'https://vk.com/images/camera_200.png', 'https://vk.com/images/camera_400.png',
@@ -77,28 +78,44 @@ def separate_deleted_profile(data):
     return result, del_res
 
 
-def get_all_profiles(connector, start_id, end_id, step=1000):
-    ids_arr = []
-
-    while start_id < (end_id + 1)-step:
-        ids_arr.append([i for i in range(start_id, start_id+step)])
-        start_id += step
-        pass
-    ids_arr.append([i for i in range(start_id, end_id+1)])
-    # TODO итерации данного цикла следует параллелить
-    for ids in ids_arr:
-        data = connector.get_profiles(ids)
-        # убираем удалённых пользователей, можно их всёравно положить в базу, лучше отдельно, чтобы как-то обработать
-        clear_data, deleted_data = separate_deleted_profile(data)
-        print(len(clear_data), len(deleted_data))
-        #TODO куда-то сохранить
-
-
-def main():
+def download_user_infos(ids):
     connector = VKConnector()
     if not connector.connect():
         return
-    get_all_profiles(connector, 1, 2000)
+    data = connector.get_profiles(ids)
+    # убираем удалённых пользователей, можно их всёравно положить в базу, лучше отдельно, чтобы как-то обработать
+    clear_data, deleted_data = separate_deleted_profile(data)
+    print(len(clear_data), len(deleted_data))
+
+    client = db_client.VkDatabaseClient()
+    deleted_result, inserted_result = client.put_many_user_info(clear_data)
+    if len(inserted_result.inserted_ids) != len(clear_data):
+        raise RuntimeError("Expected to insert " + str(len(clear_data)) + " objects. "
+                                                                          "Inserted " + str(len(inserted_result.inserted_ids)))
+
+
+def get_all_profiles(start_id, end_id, step=1000):
+    ids_arr = []
+
+    while start_id < (end_id + 1) - step:
+        ids_arr.append([i for i in range(start_id, start_id + step)])
+        start_id += step
+        pass
+
+    ids_arr.append([i for i in range(start_id, end_id + 1)])
+    threads = [threading.Thread(target=download_user_infos, args=(ids,)) for ids in ids_arr]
+
+    for thread in threads:
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+
+    print("count of available users in database - ", db_client.VkDatabaseClient().count_of_available_users())
+
+
+def main():
+    get_all_profiles(1, 5000)
 
 
 if __name__ == "__main__":
