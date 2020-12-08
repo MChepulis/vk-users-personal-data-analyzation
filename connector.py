@@ -1,9 +1,10 @@
 import requests
 import vk_api
-import db_client
 import threading
 
 from keys import app_id, client_secret, safe_key, token, api_version
+import VkElasticSearchDatabase
+import db_client
 
 default_photos = ['https://vk.com/images/camera_50.png', 'https://vk.com/images/camera_100.png',
                   'https://vk.com/images/camera_200.png', 'https://vk.com/images/camera_400.png',
@@ -114,8 +115,46 @@ def get_all_profiles(start_id, end_id, step=1000):
     print("count of available users in database - ", db_client.VkDatabaseClient().count_of_available_users())
 
 
+def download_user_infos_elastic(ids):
+    connector = VKConnector()
+    if not connector.connect():
+        return
+    data = connector.get_profiles(ids)
+    # убираем удалённых пользователей, можно их всёравно положить в базу, лучше отдельно, чтобы как-то обработать
+    clear_data, deleted_data = separate_deleted_profile(data)
+    print(len(clear_data), len(deleted_data))
+
+    elastic_vk_db = VkElasticSearchDatabase.VkElasticSearchDatabase()
+    elastic_vk_db.store_records(clear_data)
+
+
+def get_all_profiles_elastic(start_id, end_id, step=1000):
+    ids_arr = []
+
+    while start_id < (end_id + 1) - step:
+        ids_arr.append([i for i in range(start_id, start_id + step)])
+        start_id += step
+        pass
+
+    ids_arr.append([i for i in range(start_id, end_id + 1)])
+    threads = [threading.Thread(target=download_user_infos_elastic, args=(ids,)) for ids in ids_arr]
+
+    # elastic_vk_db = VkElasticSearchDatabase.VkElasticSearchDatabase()
+    # elastic_vk_db.get_elastic_object().indices.unfreeze(index=elastic_vk_db.index)
+    for thread in threads:
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+
+    # elastic_vk_db.get_elastic_object().indices.freeze(index=elastic_vk_db.index)
+
+
 def main():
-    get_all_profiles(1, 5000)
+    # get_all_profiles(1, 5000)
+    # get_all_profiles_elastic(1, 1000)
+    import test_task
+    test_task.country_hist(VkElasticSearchDatabase.VkElasticSearchDatabase())
 
 
 if __name__ == "__main__":
