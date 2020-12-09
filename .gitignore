@@ -1,5 +1,4 @@
 venv/
 .idea/
 keys.py
-db_keys.py
 __pycache__/

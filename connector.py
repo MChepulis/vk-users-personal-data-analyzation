@@ -1,8 +1,7 @@
 import requests
 import vk_api
-import db_client
 import threading
-
+import elasticsearch_client as es_client
 from keys import app_id, client_secret, safe_key, token, api_version
 
 default_photos = ['https://vk.com/images/camera_50.png', 'https://vk.com/images/camera_100.png',
@@ -85,18 +84,21 @@ def download_user_infos(ids):
     data = connector.get_profiles(ids)
     # убираем удалённых пользователей, можно их всёравно положить в базу, лучше отдельно, чтобы как-то обработать
     clear_data, deleted_data = separate_deleted_profile(data)
-    print(len(clear_data), len(deleted_data))
 
-    client = db_client.VkDatabaseClient()
-    deleted_result, inserted_result = client.put_many_user_info(clear_data)
-    if len(inserted_result.inserted_ids) != len(clear_data):
-        raise RuntimeError("Expected to insert " + str(len(clear_data)) + " objects. "
-                                                                          "Inserted " + str(len(inserted_result.inserted_ids)))
+    client = es_client.VkDataDatabaseClient()
 
+    succ, fail = client.add_available_user_info_list(clear_data)
+    if succ != len(clear_data):
+        raise RuntimeError("Expected to insert " + str(len(clear_data)) + " objects. Inserted " + str(succ))
+
+    succ, fail = client.add_unavailable_user_info_list(deleted_data)
+
+    if succ != len(deleted_data):
+        raise RuntimeError("Expected to insert " + str(len(deleted_data)) + " objects. Inserted " + str(succ))
 
 def get_all_profiles(start_id, end_id, step=1000):
     ids_arr = []
-
+    client = es_client.VkDataDatabaseClient()
     while start_id < (end_id + 1) - step:
         ids_arr.append([i for i in range(start_id, start_id + step)])
         start_id += step
@@ -111,11 +113,12 @@ def get_all_profiles(start_id, end_id, step=1000):
     for thread in threads:
         thread.join()
 
-    print("count of available users in database - ", db_client.VkDatabaseClient().count_of_available_users())
+    print("count of available users in database - ", client.count_of_available_users())
+    print("count of unavailable users in database - ", client.count_of_unavailable_users())
 
 
 def main():
-    get_all_profiles(1, 5000)
+    get_all_profiles(1, 100000)
 
 
 if __name__ == "__main__":
