@@ -3,6 +3,7 @@ import vk_api
 import threading
 import elasticsearch_client as es_client
 from keys import app_id, client_secret, safe_key, token, api_version
+from concurrent.futures import ThreadPoolExecutor as PoolExecutor
 
 default_photos = ['https://vk.com/images/camera_50.png', 'https://vk.com/images/camera_100.png',
                   'https://vk.com/images/camera_200.png', 'https://vk.com/images/camera_400.png',
@@ -96,7 +97,8 @@ def download_user_infos(ids):
     if succ != len(deleted_data):
         raise RuntimeError("Expected to insert " + str(len(deleted_data)) + " objects. Inserted " + str(succ))
 
-def get_all_profiles(start_id, end_id, step=1000):
+
+def get_all_profiles(start_id, end_id, step=1000, max_workers=10):
     ids_arr = []
     client = es_client.VkDataDatabaseClient()
     while start_id < (end_id + 1) - step:
@@ -105,20 +107,20 @@ def get_all_profiles(start_id, end_id, step=1000):
         pass
 
     ids_arr.append([i for i in range(start_id, end_id + 1)])
-    threads = [threading.Thread(target=download_user_infos, args=(ids,)) for ids in ids_arr]
 
-    for thread in threads:
-        thread.start()
-
-    for thread in threads:
-        thread.join()
+    with PoolExecutor(max_workers=max_workers) as executor:
+        for _ in executor.map(download_user_infos, ids_arr):
+            pass
 
     print("count of available users in database - ", client.count_of_available_users())
     print("count of unavailable users in database - ", client.count_of_unavailable_users())
 
 
 def main():
-    get_all_profiles(1, 100000)
+    start_id = 1
+    end_id = 100000
+    max_workers = 10
+    get_all_profiles(start_id, end_id, max_workers=max_workers)
 
 
 if __name__ == "__main__":
