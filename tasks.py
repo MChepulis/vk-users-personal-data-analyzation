@@ -3,7 +3,7 @@ import elasticsearch_dsl
 import matplotlib.pyplot as plt
 
 index = "available_users"
-
+save_path = "results/plots"
 
 def get_elastic_object(vk_elastic_db: es_client.VkDataDatabaseClient):
     return vk_elastic_db._es
@@ -27,6 +27,8 @@ def response_process(response, aggs_name, title, is_need_other, is_need_print, i
         ax.set_title(title)
         ax.barh(x_axis, y_axis)
         plt.show()
+        fig.savefig(f"{save_path}/{title.replace(' ', '_')}", dpi=300, format='png', bbox_inches='tight')
+        plt.close(fig)
 
 
 def count_by_country(vk_elastic_db: es_client.VkDataDatabaseClient, size=10, is_need_other=True, is_need_print=False,
@@ -101,6 +103,7 @@ def last_name_count(vk_elastic_db: es_client.VkDataDatabaseClient, size=10, is_n
         x_axis = data_dict[sex]["x_axis"]
         y_axis = data_dict[sex]["y_axis"]
         cur_title = f"{title}\n{sex}"
+        figname = f"{title.replace(' ', '_')}_{sex}"
 
         if is_need_print:
             print(cur_title)
@@ -112,13 +115,14 @@ def last_name_count(vk_elastic_db: es_client.VkDataDatabaseClient, size=10, is_n
             ax.set_title(cur_title)
             ax.barh(x_axis, y_axis)
             plt.show()
-
+            fig.savefig(f"{save_path}/{figname}", dpi=300, format='png', bbox_inches='tight')
+            plt.close(fig)
 
 
 def sex_distribution(vk_elastic_db: es_client.VkDataDatabaseClient, size=10, is_need_other=False, is_need_print=False,
                      is_need_plot=True):
-    aggs_name = " sex_distribution"
-    title = " sex distribution"
+    aggs_name = "sex_distribution"
+    title = "sex distribution"
     es = get_elastic_object(vk_elastic_db)
     s = elasticsearch_dsl.Search(using=es, index=index)
     a = elasticsearch_dsl.A('terms', field="sex", missing="-1", size=size)
@@ -147,6 +151,8 @@ def sex_distribution(vk_elastic_db: es_client.VkDataDatabaseClient, size=10, is_
         ax.set_title(title)
         ax.pie(sizes, labels=x_axis, autopct='%1.1f%%', startangle=90)
         plt.show()
+        fig.savefig(f"{save_path}/{title.replace(' ', '_')}", dpi=300, format='png', bbox_inches='tight')
+        plt.close(fig)
 
 
 def has_country(vk_elastic_db: es_client.VkDataDatabaseClient, is_need_print=False, is_need_plot=True):
@@ -184,6 +190,8 @@ def has_country(vk_elastic_db: es_client.VkDataDatabaseClient, is_need_print=Fal
         ax.set_title(title)
         ax.pie(sizes, labels=x_axis, autopct='%1.1f%%', startangle=90)
         plt.show()
+        fig.savefig(f"{save_path}/{title.replace(' ', '_')}", dpi=300, format='png', bbox_inches='tight')
+        plt.close(fig)
 
 
 def has_city(vk_elastic_db: es_client.VkDataDatabaseClient, is_need_print=False, is_need_plot=True):
@@ -221,6 +229,8 @@ def has_city(vk_elastic_db: es_client.VkDataDatabaseClient, is_need_print=False,
         ax.set_title(title)
         ax.pie(sizes, labels=x_axis, autopct='%1.1f%%', startangle=90)
         plt.show()
+        fig.savefig(f"{save_path}/{title.replace(' ', '_')}", dpi=300, format='png', bbox_inches='tight')
+        plt.close(fig)
 
 
 def count_by_city(vk_elastic_db: es_client.VkDataDatabaseClient, size=10, is_need_other=True, is_need_print=False,
@@ -243,6 +253,10 @@ def count_by_city_order_by_country(vk_elastic_db: es_client.VkDataDatabaseClient
     title = "count by city"
     es = get_elastic_object(vk_elastic_db)
     s = elasticsearch_dsl.Search(using=es, index=index)
+    s = s.filter("bool", must=[elasticsearch_dsl.Q("exists", field="country.title.keyword")])
+    s = s.filter("bool", must=[elasticsearch_dsl.Q("exists", field="city.title.keyword")])
+    s = s.filter("bool", must_not=[elasticsearch_dsl.Q("match", country__title__keywordd="")])
+    s = s.filter("bool", must_not=[elasticsearch_dsl.Q("match", city__title__keyword="")])
     a = elasticsearch_dsl.A('terms', field="country.title.keyword", size=size, collect_mode="breadth_first")
     a1 = elasticsearch_dsl.A('terms', field="city.title.keyword", size=size)
     s.aggs.bucket(country_aggs_name, a).bucket(city_aggs_name, a1)
@@ -264,7 +278,7 @@ def count_by_city_order_by_country(vk_elastic_db: es_client.VkDataDatabaseClient
         x_axis = data_dict[country]["x_axis"]
         y_axis = data_dict[country]["y_axis"]
         cur_title = f"{title}\n{country}"
-
+        figname = f"{title.replace(' ', '_')}_{country}"
         if is_need_print:
             print(cur_title)
             for i in range(len(x_axis)):
@@ -275,6 +289,8 @@ def count_by_city_order_by_country(vk_elastic_db: es_client.VkDataDatabaseClient
             ax.set_title(cur_title)
             ax.barh(x_axis, y_axis)
             plt.show()
+            fig.savefig(f"{save_path}/{figname}", dpi=300, format='png', bbox_inches='tight')
+            plt.close(fig)
 
 
 def has_photo(vk_elastic_db: es_client.VkDataDatabaseClient, size=10, is_need_other=True, is_need_print=False,
@@ -309,6 +325,8 @@ def has_photo(vk_elastic_db: es_client.VkDataDatabaseClient, size=10, is_need_ot
         ax.set_title(title)
         ax.pie(sizes, labels=x_axis, autopct='%1.1f%%', startangle=90)
         plt.show()
+        fig.savefig(f"{save_path}/{title.replace(' ', '_')}", dpi=300, format='png', bbox_inches='tight')
+        plt.close(fig)
 
 
 def has_mobile(vk_elastic_db: es_client.VkDataDatabaseClient, size=10, is_need_other=True, is_need_print=False,
@@ -343,6 +361,8 @@ def has_mobile(vk_elastic_db: es_client.VkDataDatabaseClient, size=10, is_need_o
         ax.set_title(title)
         ax.pie(sizes, labels=x_axis, autopct='%1.1f%%', startangle=90)
         plt.show()
+        fig.savefig(f"{save_path}/{title.replace(' ', '_')}", dpi=300, format='png', bbox_inches='tight')
+        plt.close(fig)
 
 
 def has_university(vk_elastic_db: es_client.VkDataDatabaseClient, is_need_print=False, is_need_plot=True):
@@ -378,6 +398,8 @@ def has_university(vk_elastic_db: es_client.VkDataDatabaseClient, is_need_print=
         ax.set_title(title)
         ax.pie(sizes, labels=x_axis, autopct='%1.1f%%', startangle=90)
         plt.show()
+        fig.savefig(f"{save_path}/{title.replace(' ', '_')}", dpi=300, format='png', bbox_inches='tight')
+        plt.close(fig)
 
 def count_by_university(vk_elastic_db: es_client.VkDataDatabaseClient, size=10, is_need_other=True, is_need_print=False,
                   is_need_plot=True):
@@ -411,18 +433,22 @@ def count_by_university(vk_elastic_db: es_client.VkDataDatabaseClient, size=10, 
         ax.set_title(title)
         ax.barh(x_axis, y_axis)
         plt.show()
+        fig.savefig(f"{save_path}/{title.replace(' ', '_')}", dpi=300, format='png', bbox_inches='tight')
+        plt.close(fig)
 
         sizes = [elem / sum(y_axis) for elem in y_axis]
         fig, ax = plt.subplots(1, 1)
         ax.set_title(title)
         ax.pie(sizes, labels=x_axis, autopct='%1.1f%%', startangle=90)
         plt.show()
+        fig.savefig(f"{save_path}/{title.replace(' ', '_')}_pie", dpi=300, format='png', bbox_inches='tight')
+        plt.close(fig)
 
 def count_by_university_order_by_country(vk_elastic_db: es_client.VkDataDatabaseClient, size=10, is_need_other=True,
                                    is_need_print=False, is_need_plot=True):
     country_aggs_name = "country_count"
     university_aggs_name = "university_count"
-    title = "count by city"
+    title = "count university by country"
     missing_str = ""
     es = get_elastic_object(vk_elastic_db)
     s = elasticsearch_dsl.Search(using=es, index=index)
@@ -452,7 +478,7 @@ def count_by_university_order_by_country(vk_elastic_db: es_client.VkDataDatabase
         x_axis = data_dict[country]["x_axis"]
         y_axis = data_dict[country]["y_axis"]
         cur_title = f"{title}\n{country}"
-
+        figname = f"{title.replace(' ', '_')}_{country}"
         if is_need_print:
             print(cur_title)
             for i in range(len(x_axis)):
@@ -463,6 +489,8 @@ def count_by_university_order_by_country(vk_elastic_db: es_client.VkDataDatabase
             ax.set_title(cur_title)
             ax.barh(x_axis, y_axis)
             plt.show()
+            fig.savefig(f"{save_path}/{figname}", dpi=300, format='png', bbox_inches='tight')
+            plt.close(fig)
 
 
 def profile_access_count(vk_elastic_db: es_client.VkDataDatabaseClient, is_need_print=False, is_need_plot=True):
@@ -496,6 +524,8 @@ def profile_access_count(vk_elastic_db: es_client.VkDataDatabaseClient, is_need_
         ax.set_title(title)
         ax.pie(sizes, labels=x_axis, autopct='%1.1f%%', startangle=90)
         plt.show()
+        fig.savefig(f"{save_path}/{title.replace(' ', '_')}", dpi=300, format='png', bbox_inches='tight')
+        plt.close(fig)
 
 
 def other_social_network(vk_elastic_db: es_client.VkDataDatabaseClient, is_need_print=False, is_need_plot=True):
@@ -538,6 +568,8 @@ def other_social_network(vk_elastic_db: es_client.VkDataDatabaseClient, is_need_
         ax.set_title(title)
         ax.pie(sizes, labels=x_axis, autopct='%1.1f%%', startangle=90)
         plt.show()
+        fig.savefig(f"{save_path}/{title.replace(' ', '_')}", dpi=300, format='png', bbox_inches='tight')
+        plt.close(fig)
 
     pass
 
@@ -550,13 +582,13 @@ def start():
     # has_country(client, is_need_print=True, is_need_plot=True)
     # count_by_country(client, size=10, is_need_other=True, is_need_print=True, is_need_plot=True)
     # has_city(client, is_need_print=True, is_need_plot=True)
-    # count_by_city(client, size=10, is_need_other=True, is_need_print=True, is_need_plot=True)
-    # count_by_city_order_by_country(client, size=10, is_need_other=True, is_need_print=True, is_need_plot=True)
+    count_by_city(client, size=10, is_need_other=True, is_need_print=True, is_need_plot=True)
+    count_by_city_order_by_country(client, size=10, is_need_other=True, is_need_print=True, is_need_plot=True)
     # has_photo(client, size=10, is_need_other=False, is_need_print=True, is_need_plot=True)
     # has_mobile(client, size=10, is_need_other=False, is_need_print=True, is_need_plot=True)
     # has_university(client, is_need_print=True, is_need_plot=True)
-    # count_by_university(client, size=10, is_need_other=True, is_need_print=True, is_need_plot=True)
-    # count_by_university_order_by_country(client, size=10, is_need_other=True, is_need_print=True, is_need_plot=True)
+    count_by_university(client, size=10, is_need_other=True, is_need_print=True, is_need_plot=True)
+    count_by_university_order_by_country(client, size=10, is_need_other=True, is_need_print=True, is_need_plot=True)
     # profile_access_count(client, is_need_print=True, is_need_plot=True)
     # other_social_network(client, is_need_print=True, is_need_plot=True)
 
