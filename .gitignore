@@ -3,3 +3,4 @@ venv/
 keys.py
 __pycache__/
 log
+test_task.py
