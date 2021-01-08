@@ -98,7 +98,7 @@ def download_user_infos(ids):
         succ, fail = client.add_unavailable_user_info_list(deleted_data)
         if succ != len(deleted_data):
             raise RuntimeError("Expected to insert " + str(len(deleted_data)) + " objects. Inserted " + str(succ))
-    # print(f"[{ids[0]}, {ids[-1]}]")
+    #print(f"[{ids[0]}, {ids[-1]}]")
 
 
 def get_all_profiles(start_id, end_id, step=1000, max_workers=10):
@@ -121,7 +121,7 @@ def get_all_profiles(start_id, end_id, step=1000, max_workers=10):
 def main():
     max_id = 633228552      # на 08.01.2021
     step = 50000
-    download_start_id = 1
+    download_start_id = 4500001
     download_end_id = max_id
     for start_id in range(download_start_id, download_end_id, step):
         end_id = start_id + step - 1
