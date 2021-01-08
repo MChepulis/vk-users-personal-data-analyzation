@@ -12,7 +12,7 @@ class DatabaseClient:
         if not self._es.ping():
             print ("Can't connect to elastcsearch")
             raise RuntimeError()
-        print ("Connected to elastcsearch")
+        # print ("Connected to elastcsearch")
 
     def _create_indices(self, indices: list) -> None:
         for index in indices:
@@ -89,12 +89,14 @@ class VkDataDatabaseClient(DatabaseClient):
         for i in range(len(user_info_list) // 100 + 1):
             while True:
                 try:
-                    for user_info in user_info_list[i * 100:(i + 1)*100]:
-                        self._add_insert_one(index, user_info, extract_id(user_info))
-                    output_list.append(self._execute_bulk())
+                    if len(user_info_list[i * 100:(i + 1)*100]) != 0:
+                        for user_info in user_info_list[i * 100:(i + 1)*100]:
+                            self._add_insert_one(index, user_info, extract_id(user_info))
+                        output_list.append(self._execute_bulk())
                     break
                 except ConnectionTimeout:
                     self._bulk = []
+                    print("connection timeout to database")
                     continue
         return output_list
 
