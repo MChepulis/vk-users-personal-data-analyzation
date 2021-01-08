@@ -5,7 +5,7 @@ import elasticsearch_client as es_client
 from common_task_functions import get_elastic_object, get_active_users_filter, index, save_path
 
 
-def has_photo(vk_elastic_db: es_client.VkDataDatabaseClient, size=10, is_need_other=True, is_need_print=False,
+def has_photo(vk_elastic_db: es_client.VkDataDatabaseClient, size=1, is_need_other=True, is_need_print=False,
               is_need_plot=True, is_need_active=False, days_delta=20):
     aggs_name = "has_photo"
     title = "has photo"

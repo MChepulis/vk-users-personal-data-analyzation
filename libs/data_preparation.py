@@ -5,34 +5,24 @@ city_dict = {}
 country_dict = {}
 
 
-def add_geoposition(profiles):
+def add_geoposition(countries):
     geo = Geoposition()
-    for profile in profiles:
-        city = None
-        country = None
-        city_id = None
-        country_id = None
-        if not profile.get('city') is None:
-            city = profile['city']['title']
-            city_id = profile['city']['id']
-        if not profile.get('country') is None:
-            country = profile['country']['title']
-            country_id = profile['country']['id']
-        if not city is None:
-            if city_dict.get(city_id) is None:
-                city_location = geo.get_geoposition(city, country)
-                city_dict[city_id] = city_location
-            else:
-                city_location = city_dict[city_id]
-            profile['city']['location'] = city_location
-        if not country is None:
-            if country_dict.get(country_id) is None:
-                country_location = geo.get_geoposition(country=country)
-                country_dict[country_id] = country_location
-            else:
-                country_location = country_dict[country_id]
-            profile['country']['location'] = country_location
-    return profiles
+    for country in countries:
+        if not country.get('cities') is None:
+            for city in country['cities']:
+                if city_dict.get(city['city']) is None:
+                    city_location = geo.get_geoposition(city['city'], country['country'])
+                    city_dict[city['city']] = city_location
+                else:
+                    city_location = city_dict[city['city']]
+                city['location'] = city_location
+        if country_dict.get(country['country']) is None:
+            country_location = geo.get_geoposition(country=country['country'])
+            country_dict[country['country']] = country_location
+        else:
+            country_location = country_dict[country['country']]
+        country['location'] = country_location
+    return countries
 
 
 def check_bdate_fullness(bdate):
@@ -72,7 +62,6 @@ def process_relatives(profiles):
 
 
 def data_preparation(profiles):
-    # profiles = add_geoposition(profiles)
     profiles = process_bday(profiles)
     profiles = process_career(profiles)
     profiles = process_relatives(profiles)

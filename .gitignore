@@ -1,7 +1,8 @@
 venv/
 .idea/
-keys.py
+libs/keys.py
 __pycache__/
 log
 test_task.py
 results/plots/*
+keys.py

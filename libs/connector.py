@@ -1,8 +1,6 @@
-import requests
 import vk_api
-import threading
 import elasticsearch_client as es_client
-from keys import app_id, client_secret, safe_key, token, api_version
+from keys import app_id, client_secret, token, api_version
 from concurrent.futures import ThreadPoolExecutor as PoolExecutor
 from data_preparation import data_preparation
 

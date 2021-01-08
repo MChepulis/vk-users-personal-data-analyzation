@@ -2,12 +2,12 @@ import elasticsearch_dsl
 import datetime
 import time
 import matplotlib.pyplot as plt
-
+import random
 import elasticsearch_client as es_client
 
 
 index = "available_users"
-save_path = "../results/plots"
+save_path = "results/plots"
 
 
 def get_elastic_object(vk_elastic_db: es_client.VkDataDatabaseClient):
@@ -67,3 +67,20 @@ def name_count(vk_elastic_db: es_client.VkDataDatabaseClient, aggs_name, sex=Non
 
 def get_active_title(title):
     return "active/" + title
+
+
+rand = lambda: random.randint(0, 255)
+def get_random_color():
+    return '#%02X%02X%02X' % (rand(), rand(), rand())
+
+
+def get_count_of_users(vk_elastic_db: es_client.VkDataDatabaseClient, is_need_active=False, days_delta=20):
+    es = get_elastic_object(vk_elastic_db)
+    s = elasticsearch_dsl.Search(using=es, index=index)
+    if is_need_active:
+        s = get_active_users_filter(es, index, s, days_delta=days_delta)
+    return s.count()
+
+
+def get_scale(count_of_users):
+    return count_of_users / 1000

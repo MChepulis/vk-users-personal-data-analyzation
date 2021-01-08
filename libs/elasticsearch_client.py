@@ -1,7 +1,5 @@
-import logging
 from elasticsearch import Elasticsearch, ConnectionTimeout
 import db_keys
-import json
 
 f = open('log', "w")
 
