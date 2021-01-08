@@ -1,7 +1,6 @@
 from elasticsearch import Elasticsearch, ConnectionTimeout
 import db_keys
 
-f = open('log', "w")
 
 class DatabaseClient:
     def __init__(self, hosts):
