@@ -29,6 +29,6 @@ def active_users_pie(vk_elastic_db: es_client.VkDataDatabaseClient, days_delta=2
         fig, ax = plt.subplots(1, 1)
         ax.set_title(title)
         ax.pie(sizes, labels=x_axis, autopct='%1.1f%%', startangle=90)
-        plt.show()
+        # plt.show()
         fig.savefig(f"{save_path}/{title.replace(' ', '_')}.png", dpi=300, format='png', bbox_inches='tight')
         plt.close(fig)

@@ -54,6 +54,6 @@ def last_name_count(vk_elastic_db: es_client.VkDataDatabaseClient, size=10, is_n
             fig, ax = plt.subplots(1, 1)
             ax.set_title(cur_title)
             ax.barh(x_axis, y_axis)
-            plt.show()
+            # plt.show()
             fig.savefig(f"{save_path}/{figname}.png", dpi=300, format='png', bbox_inches='tight')
             plt.close(fig)

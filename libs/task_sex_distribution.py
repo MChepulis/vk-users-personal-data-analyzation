@@ -40,6 +40,6 @@ def sex_distribution(vk_elastic_db: es_client.VkDataDatabaseClient, size=2, is_n
         fig, ax = plt.subplots(1, 1)
         ax.set_title(title)
         ax.pie(sizes, labels=x_axis, autopct='%1.1f%%', startangle=90)
-        plt.show()
+        # plt.show()
         fig.savefig(f"{save_path}/{title.replace(' ', '_')}.png", dpi=300, format='png', bbox_inches='tight')
         plt.close(fig)

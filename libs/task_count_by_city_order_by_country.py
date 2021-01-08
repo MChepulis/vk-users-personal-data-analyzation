@@ -51,6 +51,6 @@ def count_by_city_order_by_country(vk_elastic_db: es_client.VkDataDatabaseClient
             fig, ax = plt.subplots(1, 1)
             ax.set_title(cur_title)
             ax.barh(x_axis, y_axis)
-            plt.show()
+            # plt.show()
             fig.savefig(f"{save_path}/{figname}.png", dpi=300, format='png', bbox_inches='tight')
             plt.close(fig)

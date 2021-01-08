@@ -56,7 +56,9 @@ def start():
     # profile_access_count(client, is_need_print=True, is_need_plot=True, is_need_active=True, days_delta=days_delta)
     # other_social_network(client, is_need_print=True, is_need_plot=True)
     # other_social_network(client, is_need_print=True, is_need_plot=True, is_need_active=True, days_delta=days_delta)
-    active_users_pie(client, days_delta=20, is_need_print=True, is_need_plot=True)
+    # active_users_pie(client, days_delta=20, is_need_print=True, is_need_plot=True)
+    # cities_on_map(client, size=10, is_need_active=False, days_delta=days_delta)
+    # countries_on_map(client, size=10, is_need_active=False, days_delta=days_delta)
 
 
 tasks_dict = {
@@ -170,6 +172,7 @@ tasks_dict = {
 import sys
 
 if __name__ == '__main__':
+    # start()
     if len(sys.argv) > 1:
         command = sys.argv[1]
         if command == "description":

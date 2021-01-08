@@ -46,7 +46,7 @@ def response_process(response, aggs_name, title, is_need_other, is_need_print, i
         fig, ax = plt.subplots(1, 1)
         ax.set_title(title)
         ax.barh(x_axis, y_axis)
-        plt.show()
+        # plt.show()
         fig.savefig(f"{save_path}/{title.replace(' ', '_')}.png", dpi=300, format='png', bbox_inches='tight')
         plt.close(fig)
 
