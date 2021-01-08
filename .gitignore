@@ -1,5 +1,12 @@
 venv/
 .idea/
-keys.py
-db_keys.py
+libs/keys.py
 __pycache__/
+log
+test_task.py
+
+keys.py
+start_elastic.sh
+.gitignore
+/libs/download_log_copy.txt
+/libs/download_log.txt
