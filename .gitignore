@@ -6,3 +6,7 @@ log
 test_task.py
 results/plots/*
 keys.py
+start_elastic.sh
+.gitignore
+/libs/download_log_copy.txt
+/libs/download_log.txt
