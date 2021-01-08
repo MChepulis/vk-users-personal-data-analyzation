@@ -3,6 +3,7 @@ import elasticsearch_client as es_client
 from keys import app_id, client_secret, token, api_version
 from concurrent.futures import ThreadPoolExecutor as PoolExecutor
 from data_preparation import data_preparation
+import sys
 
 default_photos = ['https://vk.com/images/camera_50.png', 'https://vk.com/images/camera_100.png',
                   'https://vk.com/images/camera_200.png', 'https://vk.com/images/camera_400.png',
@@ -101,7 +102,6 @@ def download_user_infos(ids):
 
 def get_all_profiles(start_id, end_id, step=1000, max_workers=10):
     ids_arr = []
-    client = es_client.VkDataDatabaseClient()
     while start_id < (end_id + 1) - step:
         ids_arr.append([i for i in range(start_id, start_id + step)])
         start_id += step
@@ -112,29 +112,33 @@ def get_all_profiles(start_id, end_id, step=1000, max_workers=10):
     with PoolExecutor(max_workers=max_workers) as executor:
         for _ in executor.map(download_user_infos, ids_arr):
             pass
+    client = es_client.VkDataDatabaseClient()
     print("count of available users in database - ", client.count_of_available_users())
     print("count of unavailable users in database - ", client.count_of_unavailable_users())
 
 
-def main():
-    max_id = 633228552      # на 08.01.2021
-    step = 50000
-    download_start_id = 4500001
-    download_end_id = max_id
+max_id = 633228552      # на 08.01.2021
+
+
+def main(download_start_id=1, download_end_id=max_id, step=50000, max_workers=10):
     for start_id in range(download_start_id, download_end_id, step):
         end_id = start_id + step - 1
-        max_workers = 10
         get_all_profiles(start_id, end_id, max_workers=max_workers)
         print(f"[{start_id}, {end_id}], step = {step}")
         print("---------------------------------------------------------")
-        fd = open("download_log.txt", 'w')
-        fd.write(f"[{start_id}, {end_id}], step = {step}")
-        fd.close()
-        fd = open("download_log_copy.txt", 'w')
-        fd.write(f"[{start_id}, {end_id}], step = {step}")
-        fd.close()
-
+        # fd = open("download_log.txt", 'w')
+        # fd.write(f"[{start_id}, {end_id}], step = {step}")
+        # fd.close()
+        # fd = open("download_log_copy.txt", 'w')
+        # fd.write(f"[{start_id}, {end_id}], step = {step}")
+        # fd.close()
 
 
 if __name__ == "__main__":
-    main()
+    _, start_id, end_id, step, max_workers = sys.argv
+    start_id = int(start_id)
+    end_id = int(end_id)
+    step = int(step)
+    max_workers = int(max_workers)
+    print(start_id, end_id, step, max_workers)
+    main(start_id, end_id, step, max_workers)
