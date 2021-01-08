@@ -89,15 +89,16 @@ def download_user_infos(ids):
     clear_data = data_preparation(clear_data)
 
     client = es_client.VkDataDatabaseClient()
+    if len(clear_data) != 0:
+        succ, fail = client.add_available_user_info_list(clear_data)
+        if succ != len(clear_data):
+            raise RuntimeError("Expected to insert " + str(len(clear_data)) + " objects. Inserted " + str(succ))
 
-    succ, fail = client.add_available_user_info_list(clear_data)
-    if succ != len(clear_data):
-        raise RuntimeError("Expected to insert " + str(len(clear_data)) + " objects. Inserted " + str(succ))
-
-    succ, fail = client.add_unavailable_user_info_list(deleted_data)
-
-    if succ != len(deleted_data):
-        raise RuntimeError("Expected to insert " + str(len(deleted_data)) + " objects. Inserted " + str(succ))
+    if len(deleted_data) != 0:
+        succ, fail = client.add_unavailable_user_info_list(deleted_data)
+        if succ != len(deleted_data):
+            raise RuntimeError("Expected to insert " + str(len(deleted_data)) + " objects. Inserted " + str(succ))
+    # print(f"[{ids[0]}, {ids[-1]}]")
 
 
 def get_all_profiles(start_id, end_id, step=1000, max_workers=10):
@@ -113,16 +114,28 @@ def get_all_profiles(start_id, end_id, step=1000, max_workers=10):
     with PoolExecutor(max_workers=max_workers) as executor:
         for _ in executor.map(download_user_infos, ids_arr):
             pass
-
     print("count of available users in database - ", client.count_of_available_users())
     print("count of unavailable users in database - ", client.count_of_unavailable_users())
 
 
 def main():
-    start_id = 1
-    end_id = 10
-    max_workers = 10
-    get_all_profiles(start_id, end_id, max_workers=max_workers)
+    max_id = 633228552      # на 08.01.2021
+    step = 50000
+    download_start_id = 1
+    download_end_id = max_id
+    for start_id in range(download_start_id, download_end_id, step):
+        end_id = start_id + step - 1
+        max_workers = 10
+        get_all_profiles(start_id, end_id, max_workers=max_workers)
+        print(f"[{start_id}, {end_id}], step = {step}")
+        print("---------------------------------------------------------")
+        fd = open("download_log.txt", 'w')
+        fd.write(f"[{start_id}, {end_id}], step = {step}")
+        fd.close()
+        fd = open("download_log_copy.txt", 'w')
+        fd.write(f"[{start_id}, {end_id}], step = {step}")
+        fd.close()
+
 
 
 if __name__ == "__main__":
