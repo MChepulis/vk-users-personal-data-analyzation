@@ -4,6 +4,7 @@ import threading
 import elasticsearch_client as es_client
 from keys import app_id, client_secret, safe_key, token, api_version
 from concurrent.futures import ThreadPoolExecutor as PoolExecutor
+from data_preparation import data_preparation
 
 default_photos = ['https://vk.com/images/camera_50.png', 'https://vk.com/images/camera_100.png',
                   'https://vk.com/images/camera_200.png', 'https://vk.com/images/camera_400.png',
@@ -85,6 +86,7 @@ def download_user_infos(ids):
     data = connector.get_profiles(ids)
     # убираем удалённых пользователей, можно их всёравно положить в базу, лучше отдельно, чтобы как-то обработать
     clear_data, deleted_data = separate_deleted_profile(data)
+    clear_data = data_preparation(clear_data)
 
     client = es_client.VkDataDatabaseClient()
 
@@ -118,7 +120,7 @@ def get_all_profiles(start_id, end_id, step=1000, max_workers=10):
 
 def main():
     start_id = 1
-    end_id = 100000
+    end_id = 10
     max_workers = 10
     get_all_profiles(start_id, end_id, max_workers=max_workers)
 
